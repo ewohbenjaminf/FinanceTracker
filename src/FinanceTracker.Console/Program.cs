@@ -1,8 +1,10 @@
 ﻿using FinanceTracker.Core.Enums;
 using FinanceTracker.Core.Models;
+using FinanceTracker.Core.Services;
 using FinanceTracker.Infrastructure.Repositories;
 
 var repository = new InMemoryTransactionRepository();
+var summaryService = new FinancialSummaryService();
 
 while (true)
 {
@@ -14,7 +16,8 @@ while (true)
     Console.WriteLine("2. View Transactions");
     Console.WriteLine("3. Find Transaction");
     Console.WriteLine("4. Delete Transaction");
-    Console.WriteLine("5. Exit");
+Console.WriteLine("5. Financial Summary");
+Console.WriteLine("6. Exit");
     Console.WriteLine("================================");
     Console.Write("Select an option: ");
 
@@ -38,9 +41,9 @@ while (true)
             DeleteTransaction();
             break;
 
-        case "5":
-            Console.WriteLine("Goodbye!");
-            return;
+Console.WriteLine("4. Delete Transaction");
+Console.WriteLine("5. Financial Summary");
+Console.WriteLine("6. Exit");
 
         default:
             Console.WriteLine("Invalid option.");
@@ -169,4 +172,22 @@ void Pause()
     Console.WriteLine();
     Console.WriteLine("Press Enter to continue...");
     Console.ReadLine();
+}
+
+void ShowFinancialSummary()
+{
+    Console.WriteLine();
+    Console.WriteLine("=== Financial Summary ===");
+
+    var transactions = repository.GetAll();
+
+    decimal totalIncome = summaryService.CalculateTotalIncome(transactions);
+    decimal totalExpenses = summaryService.CalculateTotalExpenses(transactions);
+    decimal balance = summaryService.CalculateBalance(transactions);
+
+    Console.WriteLine($"Total Income:   {totalIncome:C}");
+    Console.WriteLine($"Total Expenses: {totalExpenses:C}");
+    Console.WriteLine($"Balance:        {balance:C}");
+
+    Pause();
 }
