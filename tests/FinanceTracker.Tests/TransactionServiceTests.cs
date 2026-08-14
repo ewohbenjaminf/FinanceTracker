@@ -11,14 +11,15 @@ public class TransactionServiceTests
     {
         var service = new TransactionService();
 
-        var transaction = new Transaction
-        {
-            Id = 1,
-            Amount = 5000,
-            Description = "Salary",
-            Date = new DateTime(2026, 8, 9),
-            Type = TransactionType.Income
-        };
+     var transaction = new Transaction
+{
+    Id = 1,
+    Amount = 5000,
+    Description = "Salary",
+    Date = new DateTime(2026, 8, 9),
+    Type = TransactionType.Income,
+    Currency = CurrencyCode.NGN
+};
 
         service.AddTransaction(transaction);
 
@@ -75,3 +76,4 @@ public class TransactionServiceTests
         Assert.Null(result);
     }
 }
+

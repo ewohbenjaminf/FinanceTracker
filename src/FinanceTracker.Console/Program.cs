@@ -12,12 +12,16 @@ while (true)
     Console.WriteLine("================================");
     Console.WriteLine("        FINANCE TRACKER");
     Console.WriteLine("================================");
+    
+    
+    
+    
     Console.WriteLine("1. Add Transaction");
     Console.WriteLine("2. View Transactions");
     Console.WriteLine("3. Find Transaction");
     Console.WriteLine("4. Delete Transaction");
-Console.WriteLine("5. Financial Summary");
-Console.WriteLine("6. Exit");
+    Console.WriteLine("5. Financial Summary");
+    Console.WriteLine("6. Exit");
     Console.WriteLine("================================");
     Console.Write("Select an option: ");
 
@@ -41,9 +45,13 @@ Console.WriteLine("6. Exit");
             DeleteTransaction();
             break;
 
-Console.WriteLine("4. Delete Transaction");
-Console.WriteLine("5. Financial Summary");
-Console.WriteLine("6. Exit");
+        case "5":
+            ShowFinancialSummary();
+            break;
+
+        case "6":
+            Console.WriteLine("Goodbye!");
+            return;
 
         default:
             Console.WriteLine("Invalid option.");
@@ -191,3 +199,4 @@ void ShowFinancialSummary()
 
     Pause();
 }
+

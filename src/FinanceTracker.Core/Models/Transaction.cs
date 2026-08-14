@@ -13,4 +13,6 @@ public class Transaction
     public DateTime Date { get; set; }
 
     public TransactionType Type { get; set; }
+
+    public CurrencyCode Currency { get; set; }
 }
