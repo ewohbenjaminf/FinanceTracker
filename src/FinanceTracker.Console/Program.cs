@@ -1,27 +1,33 @@
 ﻿using FinanceTracker.Core.Enums;
 using FinanceTracker.Core.Models;
 using FinanceTracker.Core.Services;
+using FinanceTracker.Infrastructure.Currency;
 using FinanceTracker.Infrastructure.Repositories;
 
 var repository = new InMemoryTransactionRepository();
 var summaryService = new FinancialSummaryService();
 
+var httpClient = new HttpClient
+{
+    BaseAddress = new Uri("https://api.frankfurter.dev/")
+};
+
+var exchangeRateService =
+    new FrankfurterExchangeRateClient(httpClient);
 while (true)
 {
     Console.WriteLine();
     Console.WriteLine("================================");
     Console.WriteLine("        FINANCE TRACKER");
     Console.WriteLine("================================");
-    
-    
-    
-    
+
     Console.WriteLine("1. Add Transaction");
     Console.WriteLine("2. View Transactions");
     Console.WriteLine("3. Find Transaction");
     Console.WriteLine("4. Delete Transaction");
     Console.WriteLine("5. Financial Summary");
-    Console.WriteLine("6. Exit");
+    Console.WriteLine("6. Currency Conversion");
+    Console.WriteLine("7. Exit");
     Console.WriteLine("================================");
     Console.Write("Select an option: ");
 
@@ -50,6 +56,10 @@ while (true)
             break;
 
         case "6":
+            await ConvertCurrency();
+            break;
+
+        case "7":
             Console.WriteLine("Goodbye!");
             return;
 
@@ -82,13 +92,21 @@ void AddTransaction()
 
     TransactionType type = Enum.Parse<TransactionType>(typeInput, true);
 
+    Console.Write("Enter category: ");
+    string categoryInput = Console.ReadLine()!;
+
+    TransactionCategory category =
+        Enum.Parse<TransactionCategory>(categoryInput, true);
+
     var transaction = new Transaction
     {
+
         Id = id,
         Amount = amount,
         Description = description,
         Date = date,
-        Type = type
+        Type = type,
+        Category = category
     };
 
     repository.Add(transaction);
@@ -119,7 +137,8 @@ void ViewTransactions()
             $"Amount: {transaction.Amount:C} | " +
             $"Description: {transaction.Description} | " +
             $"Date: {transaction.Date:yyyy-MM-dd} | " +
-            $"Type: {transaction.Type}");
+            $"Type: {transaction.Type} | " +
+            $"Category: {transaction.Category}");
     }
 
     Pause();
@@ -147,6 +166,7 @@ void FindTransaction()
         Console.WriteLine($"Description: {transaction.Description}");
         Console.WriteLine($"Date: {transaction.Date:yyyy-MM-dd}");
         Console.WriteLine($"Type: {transaction.Type}");
+        Console.WriteLine($"Category: {transaction.Category}");
     }
 
     Pause();
@@ -200,3 +220,66 @@ void ShowFinancialSummary()
     Pause();
 }
 
+async Task ConvertCurrency()
+{
+    Console.WriteLine();
+    Console.WriteLine("=== Currency Conversion ===");
+
+    Console.Write("Enter amount: ");
+    if (!decimal.TryParse(Console.ReadLine(), out decimal amount))
+    {
+        Console.WriteLine("Invalid amount.");
+        Pause();
+        return;
+    }
+
+    Console.Write("Enter source currency (e.g. NGN, USD, GBP): ");
+    string fromInput = Console.ReadLine()!.Trim().ToUpperInvariant();
+
+    Console.Write("Enter target currency (e.g. NGN, USD, GBP): ");
+    string toInput = Console.ReadLine()!.Trim().ToUpperInvariant();
+
+    if (!Enum.TryParse<CurrencyCode>(fromInput, true, out var fromCurrency))
+    {
+        Console.WriteLine("Invalid source currency.");
+        Pause();
+        return;
+    }
+
+    if (!Enum.TryParse<CurrencyCode>(toInput, true, out var toCurrency))
+    {
+        Console.WriteLine("Invalid target currency.");
+        Pause();
+        return;
+    }
+
+    try
+    {
+        decimal exchangeRate =
+            await exchangeRateService.GetExchangeRateAsync(
+                fromCurrency.ToString(),
+                toCurrency.ToString());
+
+        var conversionService = new CurrencyConversionService();
+
+        decimal convertedAmount = conversionService.Convert(
+            amount,
+            fromCurrency,
+            toCurrency,
+            exchangeRate);
+
+        Console.WriteLine();
+        Console.WriteLine("=== Conversion Result ===");
+        Console.WriteLine(
+            $"{amount:N2} {fromCurrency} = {convertedAmount:N2} {toCurrency}");
+        Console.WriteLine(
+            $"Exchange Rate: 1 {fromCurrency} = {exchangeRate:N6} {toCurrency}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine();
+        Console.WriteLine($"Currency conversion failed: {ex.Message}");
+    }
+
+    Pause();
+}

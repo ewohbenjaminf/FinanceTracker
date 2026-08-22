@@ -15,4 +15,6 @@ public class Transaction
     public TransactionType Type { get; set; }
 
     public CurrencyCode Currency { get; set; }
+
+    public TransactionCategory Category { get; set; }
 }

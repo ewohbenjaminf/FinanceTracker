@@ -11,14 +11,15 @@ public class TransactionServiceTests
     {
         var service = new TransactionService();
 
-     var transaction = new Transaction
+var transaction = new Transaction
 {
     Id = 1,
     Amount = 5000,
     Description = "Salary",
     Date = new DateTime(2026, 8, 9),
     Type = TransactionType.Income,
-    Currency = CurrencyCode.NGN
+    Currency = CurrencyCode.NGN,
+    Category = TransactionCategory.Salary
 };
 
         service.AddTransaction(transaction);
@@ -34,14 +35,16 @@ public class TransactionServiceTests
     {
         var service = new TransactionService();
 
-        var transaction = new Transaction
-        {
-            Id = 2,
-            Amount = 1500,
-            Description = "Transportation",
-            Date = new DateTime(2026, 8, 9),
-            Type = TransactionType.Expense
-        };
+    var transaction = new Transaction
+{
+    Id = 2,
+    Amount = 1500,
+    Description = "Transportation",
+    Date = new DateTime(2026, 8, 9),
+    Type = TransactionType.Expense,
+    Currency = CurrencyCode.NGN,
+    Category = TransactionCategory.Transportation
+};
 
         service.AddTransaction(transaction);
 
@@ -58,13 +61,15 @@ public class TransactionServiceTests
         var service = new TransactionService();
 
         var transaction = new Transaction
-        {
-            Id = 3,
-            Amount = 2500,
-            Description = "Food",
-            Date = new DateTime(2026, 8, 9),
-            Type = TransactionType.Expense
-        };
+{
+    Id = 3,
+    Amount = 2500,
+    Description = "Food",
+    Date = new DateTime(2026, 8, 9),
+    Type = TransactionType.Expense,
+    Currency = CurrencyCode.NGN,
+    Category = TransactionCategory.Food
+};
 
         service.AddTransaction(transaction);
 
