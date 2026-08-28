@@ -26,4 +26,29 @@ public class FinancialSummaryService
 
         return income - expenses;
     }
+
+    public List<Transaction> GetTransactionsForMonth(
+        List<Transaction> transactions,
+        int year,
+        int month)
+    {
+        return transactions
+            .Where(transaction =>
+                transaction.Date.Year == year &&
+                transaction.Date.Month == month)
+            .ToList();
+    }
+
+    public decimal CalculateSavingsRate(List<Transaction> transactions)
+    {
+        decimal income = CalculateTotalIncome(transactions);
+        decimal expenses = CalculateTotalExpenses(transactions);
+
+        if (income == 0)
+        {
+            return 0;
+        }
+
+        return ((income - expenses) / income) * 100;
+    }
 }

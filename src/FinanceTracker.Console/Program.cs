@@ -26,8 +26,10 @@ while (true)
     Console.WriteLine("3. Find Transaction");
     Console.WriteLine("4. Delete Transaction");
     Console.WriteLine("5. Financial Summary");
-    Console.WriteLine("6. Currency Conversion");
-    Console.WriteLine("7. Exit");
+    Console.WriteLine("6. Monthly Summary");
+    Console.WriteLine("7. Currency Conversion");
+    Console.WriteLine("8. Budget Management");
+    Console.WriteLine("9. Exit");
     Console.WriteLine("================================");
     Console.Write("Select an option: ");
 
@@ -56,12 +58,20 @@ while (true)
             break;
 
         case "6":
-            await ConvertCurrency();
-            break;
+    ShowMonthlySummary();
+    break;
 
-        case "7":
-            Console.WriteLine("Goodbye!");
-            return;
+case "7":
+    await ConvertCurrency();
+    break;
+
+case "8":
+    ShowBudgetManagement();
+    break;
+
+case "9":
+    Console.WriteLine("Goodbye!");
+    return;
 
         default:
             Console.WriteLine("Invalid option.");
@@ -90,22 +100,39 @@ void AddTransaction()
     Console.Write("Enter type (Income/Expense): ");
     string typeInput = Console.ReadLine()!;
 
-    TransactionType type = Enum.Parse<TransactionType>(typeInput, true);
+    TransactionType type =
+        Enum.Parse<TransactionType>(typeInput, true);
+
+    Console.Write("Enter currency (NGN, USD, GBP, EUR): ");
+    string currencyInput =
+        Console.ReadLine()!.Trim().ToUpperInvariant();
+
+    if (!Enum.TryParse<CurrencyCode>(
+        currencyInput,
+        true,
+        out var currency))
+    {
+        Console.WriteLine("Invalid currency.");
+        Pause();
+        return;
+    }
 
     Console.Write("Enter category: ");
     string categoryInput = Console.ReadLine()!;
 
     TransactionCategory category =
-        Enum.Parse<TransactionCategory>(categoryInput, true);
+        Enum.Parse<TransactionCategory>(
+            categoryInput,
+            true);
 
     var transaction = new Transaction
     {
-
         Id = id,
         Amount = amount,
         Description = description,
         Date = date,
         Type = type,
+        Currency = currency,
         Category = category
     };
 
@@ -279,6 +306,107 @@ async Task ConvertCurrency()
     {
         Console.WriteLine();
         Console.WriteLine($"Currency conversion failed: {ex.Message}");
+    }
+
+    Pause();
+}
+
+void ShowMonthlySummary()
+{
+    Console.WriteLine();
+    Console.WriteLine("=== Monthly Financial Summary ===");
+
+    Console.Write("Enter year: ");
+    int year = int.Parse(Console.ReadLine()!);
+
+    Console.Write("Enter month (1-12): ");
+    int month = int.Parse(Console.ReadLine()!);
+    Console.Write("Enter currency (NGN, USD, GBP, EUR): ");
+    string currencyInput = Console.ReadLine()!.ToUpper();
+
+    var allTransactions = repository.GetAll();
+
+    var monthlyTransactions =
+    summaryService.GetTransactionsForMonth(
+        allTransactions,
+        year,
+        month)
+    .Where(transaction =>
+        transaction.Currency.ToString() == currencyInput)
+    .ToList();
+
+    if (monthlyTransactions.Count == 0)
+    {
+        Console.WriteLine("No transactions found for this month.");
+        Pause();
+        return;
+    }
+
+    decimal income =
+        summaryService.CalculateTotalIncome(monthlyTransactions);
+
+    decimal expenses =
+        summaryService.CalculateTotalExpenses(monthlyTransactions);
+
+    decimal balance =
+        summaryService.CalculateBalance(monthlyTransactions);
+
+    decimal savingsRate =
+        summaryService.CalculateSavingsRate(monthlyTransactions);
+
+    Console.WriteLine();
+    Console.WriteLine($"Month: {year}-{month:D2}");
+    Console.WriteLine($"Total Income:   {income:C}");
+    Console.WriteLine($"Total Expenses: {expenses:C}");
+    Console.WriteLine($"Balance:        {balance:C}");
+    Console.WriteLine($"Savings Rate:   {savingsRate:F2}%");
+
+    Pause();
+}
+
+void ShowBudgetManagement()
+{
+    Console.WriteLine();
+    Console.WriteLine("=== Budget Management ===");
+
+    Console.Write("Enter monthly budget: ");
+    decimal budget = decimal.Parse(Console.ReadLine()!);
+
+    var transactions = repository.GetAll();
+
+    var budgetService = new BudgetService();
+
+    decimal expenses =
+        budgetService.CalculateTotalExpenses(transactions);
+
+    decimal remaining =
+        budgetService.CalculateRemainingBudget(
+            budget,
+            transactions);
+
+    decimal percentageUsed =
+        budgetService.CalculatePercentageUsed(
+            budget,
+            transactions);
+
+    bool exceeded =
+        budgetService.IsBudgetExceeded(
+            budget,
+            transactions);
+
+    Console.WriteLine();
+    Console.WriteLine($"Monthly Budget:   {budget:C}");
+    Console.WriteLine($"Total Expenses:   {expenses:C}");
+    Console.WriteLine($"Remaining:        {remaining:C}");
+    Console.WriteLine($"Budget Used:      {percentageUsed:F2}%");
+
+    if (exceeded)
+    {
+        Console.WriteLine("Status:           BUDGET EXCEEDED");
+    }
+    else
+    {
+        Console.WriteLine("Status:           Within Budget");
     }
 
     Pause();
