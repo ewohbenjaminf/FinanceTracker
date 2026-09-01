@@ -1,3 +1,4 @@
+using FinanceTracker.Core.Enums;
 using FinanceTracker.Core.Models;
 
 namespace FinanceTracker.Core.Services;
@@ -7,39 +8,39 @@ public class BudgetService
     public decimal CalculateTotalExpenses(List<Transaction> transactions)
     {
         return transactions
-            .Where(transaction => transaction.Type == FinanceTracker.Core.Enums.TransactionType.Expense)
-            .Sum(transaction => transaction.Amount);
+            .Where(t => t.Type == TransactionType.Expense)
+            .Sum(t => t.Amount);
     }
 
     public decimal CalculateRemainingBudget(
-        decimal budget,
+        decimal budgetAmount,
         List<Transaction> transactions)
     {
-        decimal expenses = CalculateTotalExpenses(transactions);
+        decimal totalExpenses = CalculateTotalExpenses(transactions);
 
-        return budget - expenses;
+        return budgetAmount - totalExpenses;
     }
 
     public decimal CalculatePercentageUsed(
-        decimal budget,
+        decimal budgetAmount,
         List<Transaction> transactions)
     {
-        if (budget <= 0)
+        if (budgetAmount <= 0)
         {
             return 0;
         }
 
-        decimal expenses = CalculateTotalExpenses(transactions);
+        decimal totalExpenses = CalculateTotalExpenses(transactions);
 
-        return (expenses / budget) * 100;
+        return (totalExpenses / budgetAmount) * 100;
     }
 
     public bool IsBudgetExceeded(
-        decimal budget,
+        decimal budgetAmount,
         List<Transaction> transactions)
     {
-        decimal expenses = CalculateTotalExpenses(transactions);
+        decimal totalExpenses = CalculateTotalExpenses(transactions);
 
-        return expenses > budget;
+        return totalExpenses > budgetAmount;
     }
 }
