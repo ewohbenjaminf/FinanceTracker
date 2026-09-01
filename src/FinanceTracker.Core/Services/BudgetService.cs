@@ -35,12 +35,32 @@ public class BudgetService
         return (totalExpenses / budgetAmount) * 100;
     }
 
-    public bool IsBudgetExceeded(
+        public bool IsBudgetExceeded(
         decimal budgetAmount,
         List<Transaction> transactions)
     {
         decimal totalExpenses = CalculateTotalExpenses(transactions);
 
         return totalExpenses > budgetAmount;
+    }
+
+    public string GetBudgetStatus(
+        decimal budgetAmount,
+        List<Transaction> transactions)
+    {
+        decimal percentageUsed =
+            CalculatePercentageUsed(budgetAmount, transactions);
+
+        if (percentageUsed > 100)
+        {
+            return "Exceeded";
+        }
+
+        if (percentageUsed >= 80)
+        {
+            return "Warning";
+        }
+
+        return "Within Budget";
     }
 }

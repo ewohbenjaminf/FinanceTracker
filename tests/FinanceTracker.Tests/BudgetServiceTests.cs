@@ -98,6 +98,69 @@ public class BudgetServiceTests
         bool result =
             service.IsBudgetExceeded(400000, transactions);
 
-        Assert.True(result);
-    }
+    Assert.True(result);
+}
+
+[Fact]
+public void GetBudgetStatus_ReturnsWithinBudgetBelow80Percent()
+{
+    var transactions = new List<Transaction>
+    {
+        new Transaction
+        {
+            Id = 1,
+            Amount = 150000,
+            Type = TransactionType.Expense
+        }
+    };
+
+    var service = new BudgetService();
+
+    string result =
+        service.GetBudgetStatus(400000, transactions);
+
+    Assert.Equal("Within Budget", result);
+}
+
+[Fact]
+public void GetBudgetStatus_ReturnsWarningAt80PercentOrMore()
+{
+    var transactions = new List<Transaction>
+    {
+        new Transaction
+        {
+            Id = 1,
+            Amount = 320000,
+            Type = TransactionType.Expense
+        }
+    };
+
+    var service = new BudgetService();
+
+    string result =
+        service.GetBudgetStatus(400000, transactions);
+
+    Assert.Equal("Warning", result);
+}
+
+[Fact]
+public void GetBudgetStatus_ReturnsExceededAbove100Percent()
+{
+    var transactions = new List<Transaction>
+    {
+        new Transaction
+        {
+            Id = 1,
+            Amount = 450000,
+            Type = TransactionType.Expense
+        }
+    };
+
+    var service = new BudgetService();
+
+    string result =
+        service.GetBudgetStatus(400000, transactions);
+
+    Assert.Equal("Exceeded", result);
+}
 }
