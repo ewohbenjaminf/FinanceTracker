@@ -4,7 +4,11 @@ using FinanceTracker.Core.Services;
 using FinanceTracker.Infrastructure.Currency;
 using FinanceTracker.Infrastructure.Repositories;
 
-var repository = new InMemoryTransactionRepository();
+var repository = new JsonTransactionRepository(
+    Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "FinanceTracker",
+        "transactions.json"));
 var summaryService = new FinancialSummaryService();
 
 var httpClient = new HttpClient
