@@ -324,15 +324,16 @@ void ShowMonthlySummary()
     Console.Write("Enter currency (NGN, USD, GBP, EUR): ");
     string currencyInput = Console.ReadLine()!.ToUpper();
 
-    var allTransactions = repository.GetAll();
+   var allTransactions = repository.GetAll().ToList();
 
-    var monthlyTransactions =
+var monthlyTransactions =
     summaryService.GetTransactionsForMonth(
         allTransactions,
         year,
         month)
     .Where(transaction =>
-        transaction.Currency.ToString() == currencyInput)
+        transaction.Currency.ToString()
+            .Equals(currencyInput, StringComparison.OrdinalIgnoreCase))
     .ToList();
 
     if (monthlyTransactions.Count == 0)
@@ -343,11 +344,11 @@ void ShowMonthlySummary()
     }
 
     decimal income =
-        summaryService.CalculateTotalIncome(monthlyTransactions);
+    summaryService.CalculateTotalIncome(monthlyTransactions);
 
-    decimal expenses =
-        summaryService.CalculateTotalExpenses(monthlyTransactions);
-
+decimal expenses =
+    summaryService.CalculateTotalExpenses(monthlyTransactions);
+    
     decimal balance =
         summaryService.CalculateBalance(monthlyTransactions);
 
@@ -363,16 +364,39 @@ void ShowMonthlySummary()
 
     Pause();
 }
-
 void ShowBudgetManagement()
 {
     Console.WriteLine();
     Console.WriteLine("=== Budget Management ===");
 
     Console.Write("Enter monthly budget: ");
-    decimal budget = decimal.Parse(Console.ReadLine()!);
 
-    var transactions = repository.GetAll();
+    if (!decimal.TryParse(
+        Console.ReadLine(),
+        out decimal budget) || budget <= 0)
+    {
+        Console.WriteLine("Invalid budget amount.");
+        Pause();
+        return;
+    }
+
+    Console.Write("Enter currency (NGN, USD, GBP, EUR): ");
+    string currencyInput =
+        Console.ReadLine()!.Trim().ToUpperInvariant();
+
+    if (!Enum.TryParse<CurrencyCode>(
+        currencyInput,
+        true,
+        out var budgetCurrency))
+    {
+        Console.WriteLine("Invalid currency.");
+        Pause();
+        return;
+    }
+
+    var transactions = repository.GetAll()
+        .Where(t => t.Currency == budgetCurrency)
+        .ToList();
 
     var budgetService = new BudgetService();
 
@@ -389,25 +413,26 @@ void ShowBudgetManagement()
             budget,
             transactions);
 
-    bool exceeded =
-        budgetService.IsBudgetExceeded(
+    string status =
+        budgetService.GetBudgetStatus(
             budget,
             transactions);
 
     Console.WriteLine();
-    Console.WriteLine($"Monthly Budget:   {budget:C}");
-    Console.WriteLine($"Total Expenses:   {expenses:C}");
-    Console.WriteLine($"Remaining:        {remaining:C}");
-    Console.WriteLine($"Budget Used:      {percentageUsed:F2}%");
+    Console.WriteLine(
+        $"Monthly Budget:   {budget:N2} {budgetCurrency}");
 
-    if (exceeded)
-    {
-        Console.WriteLine("Status:           BUDGET EXCEEDED");
-    }
-    else
-    {
-        Console.WriteLine("Status:           Within Budget");
-    }
+    Console.WriteLine(
+        $"Total Expenses:   {expenses:N2} {budgetCurrency}");
+
+    Console.WriteLine(
+        $"Remaining:        {remaining:N2} {budgetCurrency}");
+
+    Console.WriteLine(
+        $"Budget Used:      {percentageUsed:F2}%");
+
+    Console.WriteLine(
+        $"Status:           {status}");
 
     Pause();
 }
