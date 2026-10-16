@@ -354,13 +354,23 @@ decimal expenses =
 
     decimal savingsRate =
         summaryService.CalculateSavingsRate(monthlyTransactions);
+   
+    string currencySymbol = currencyInput switch
+    {
+        "NGN" => "₦",
+        "USD" => "$",
+        "GBP" => "£",
+        "EUR" => "€",
+        _ => currencyInput + " "
+    };
 
     Console.WriteLine();
     Console.WriteLine($"Month: {year}-{month:D2}");
-    Console.WriteLine($"Total Income:   {income:C}");
-    Console.WriteLine($"Total Expenses: {expenses:C}");
-    Console.WriteLine($"Balance:        {balance:C}");
+    Console.WriteLine($"Total Income:   {currencySymbol}{income:N2}");
+    Console.WriteLine($"Total Expenses: {currencySymbol}{expenses:N2}");
+    Console.WriteLine($"Balance:        {currencySymbol}{balance:N2}");
     Console.WriteLine($"Savings Rate:   {savingsRate:F2}%");
+
 
     Pause();
 }
