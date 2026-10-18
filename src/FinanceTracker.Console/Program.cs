@@ -165,7 +165,7 @@ void ViewTransactions()
     {
         Console.WriteLine(
             $"ID: {transaction.Id} | " +
-            $"Amount: {transaction.Amount:C} | " +
+           $"Amount: {FormatTransactionAmount(transaction.Amount, transaction.Currency)} | " +
             $"Description: {transaction.Description} | " +
             $"Date: {transaction.Date:yyyy-MM-dd} | " +
             $"Type: {transaction.Type} | " +
@@ -193,7 +193,9 @@ void FindTransaction()
     {
         Console.WriteLine();
         Console.WriteLine($"ID: {transaction.Id}");
-        Console.WriteLine($"Amount: {transaction.Amount:C}");
+        
+Console.WriteLine(
+    $"Amount: {FormatTransactionAmount(transaction.Amount, transaction.Currency)}");
         Console.WriteLine($"Description: {transaction.Description}");
         Console.WriteLine($"Date: {transaction.Date:yyyy-MM-dd}");
         Console.WriteLine($"Type: {transaction.Type}");
@@ -240,13 +242,55 @@ void ShowFinancialSummary()
 
     var transactions = repository.GetAll();
 
-    decimal totalIncome = summaryService.CalculateTotalIncome(transactions);
-    decimal totalExpenses = summaryService.CalculateTotalExpenses(transactions);
-    decimal balance = summaryService.CalculateBalance(transactions);
+       if (transactions.Count == 0)
+    {
+        Console.WriteLine("No transactions found.");
+        Pause();
+        return;
+    }
 
-    Console.WriteLine($"Total Income:   {totalIncome:C}");
-    Console.WriteLine($"Total Expenses: {totalExpenses:C}");
-    Console.WriteLine($"Balance:        {balance:C}");
+    
+Console.WriteLine("Select currency for the summary:");
+
+CurrencyCode[] currencies = Enum.GetValues<CurrencyCode>();
+
+for (int i = 0; i < currencies.Length; i++)
+{
+    Console.WriteLine($"{i + 1}. {currencies[i]}");
+}
+
+Console.Write("Enter the number for your currency: ");
+string currencyInput = Console.ReadLine()?.Trim() ?? "";
+
+if (!int.TryParse(currencyInput, out int currencyChoice)
+    || currencyChoice < 1
+    || currencyChoice > currencies.Length)
+{
+    Console.WriteLine($"Invalid selection. Please choose a number from 1 to {currencies.Length}.");
+    Pause();
+    return;
+}
+
+CurrencyCode selectedCurrency = currencies[currencyChoice - 1];
+
+    var filteredTransactions = transactions
+        .Where(t => t.Currency == selectedCurrency)
+        .ToList();
+
+    decimal totalIncome = summaryService.CalculateTotalIncome(filteredTransactions);
+    decimal totalExpenses = summaryService.CalculateTotalExpenses(filteredTransactions);
+    decimal balance = summaryService.CalculateBalance(filteredTransactions);
+
+    Console.WriteLine();
+    Console.WriteLine($"Currency:       {selectedCurrency}");
+    Console.WriteLine($"Total Income:   {FormatTransactionAmount(totalIncome, selectedCurrency)}");
+    Console.WriteLine($"Total Expenses: {FormatTransactionAmount(totalExpenses, selectedCurrency)}");
+    Console.WriteLine($"Balance:        {FormatTransactionAmount(balance, selectedCurrency)}");
+
+    if (filteredTransactions.Count == 0)
+    {
+        Console.WriteLine("No transactions found in this currency.");
+    }
 
     Pause();
 }
@@ -449,4 +493,40 @@ void ShowBudgetManagement()
         $"Status:           {status}");
 
     Pause();
+}
+string FormatTransactionAmount(
+    decimal amount,
+    CurrencyCode currency)
+{
+    string symbol = currency switch
+    {
+        CurrencyCode.NGN => "₦",
+        CurrencyCode.USD => "$",
+        CurrencyCode.GBP => "£",
+        CurrencyCode.EUR => "€",
+        CurrencyCode.CAD => "CA$",
+        CurrencyCode.AUD => "A$",
+        CurrencyCode.CHF => "CHF ",
+        CurrencyCode.JPY => "¥",
+        CurrencyCode.CNY => "CN¥",
+        CurrencyCode.INR => "₹",
+        CurrencyCode.ZAR => "R",
+        CurrencyCode.AED => "AED ",
+        CurrencyCode.SAR => "SAR ",
+        CurrencyCode.KES => "KSh ",
+        CurrencyCode.GHS => "GH₵",
+        CurrencyCode.EGP => "E£",
+        CurrencyCode.BRL => "R$",
+        CurrencyCode.MXN => "MX$",
+        CurrencyCode.SGD => "S$",
+        CurrencyCode.NZD => "NZ$",
+        CurrencyCode.SEK => "SEK ",
+        CurrencyCode.NOK => "NOK ",
+        CurrencyCode.DKK => "DKK ",
+        CurrencyCode.PLN => "zł ",
+        CurrencyCode.TRY => "₺",
+        _ => $"{currency} "
+    };
+
+    return $"{symbol}{amount:N2}";
 }
