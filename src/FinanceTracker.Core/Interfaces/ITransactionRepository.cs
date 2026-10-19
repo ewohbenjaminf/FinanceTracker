@@ -11,4 +11,5 @@ public interface ITransactionRepository
     Transaction? GetById(int id);
 
     void Delete(int id);
+    void Update(Transaction transaction);
 }

@@ -28,12 +28,13 @@ while (true)
     Console.WriteLine("1. Add Transaction");
     Console.WriteLine("2. View Transactions");
     Console.WriteLine("3. Find Transaction");
-    Console.WriteLine("4. Delete Transaction");
-    Console.WriteLine("5. Financial Summary");
-    Console.WriteLine("6. Monthly Summary");
-    Console.WriteLine("7. Currency Conversion");
-    Console.WriteLine("8. Budget Management");
-    Console.WriteLine("9. Exit");
+    Console.WriteLine("4. Edit Transaction");
+    Console.WriteLine("5. Delete Transaction");
+    Console.WriteLine("6. Financial Summary");
+    Console.WriteLine("7. Monthly Summary");
+    Console.WriteLine("8. Currency Conversion");
+    Console.WriteLine("9. Budget Management");
+    Console.WriteLine("10. Exit");
     Console.WriteLine("================================");
     Console.Write("Select an option: ");
 
@@ -53,29 +54,34 @@ while (true)
             FindTransaction();
             break;
 
+       
         case "4":
-            DeleteTransaction();
+            EditTransaction();
             break;
 
         case "5":
-            ShowFinancialSummary();
+            DeleteTransaction();
             break;
 
         case "6":
-    ShowMonthlySummary();
-    break;
+            ShowFinancialSummary();
+            break;
 
-case "7":
-    await ConvertCurrency();
-    break;
+        case "7":
+            ShowMonthlySummary();
+            break;
 
-case "8":
-    ShowBudgetManagement();
-    break;
+        case "8":
+            await ConvertCurrency();
+            break;
 
-case "9":
-    Console.WriteLine("Goodbye!");
-    return;
+        case "9":
+            ShowBudgetManagement();
+            break;
+
+        case "10":
+            Console.WriteLine("Goodbye!");
+            return;
 
         default:
             Console.WriteLine("Invalid option.");
@@ -202,6 +208,141 @@ Console.WriteLine(
         Console.WriteLine($"Category: {transaction.Category}");
     }
 
+    Pause();
+}
+
+
+void EditTransaction()
+{
+    Console.WriteLine();
+    Console.WriteLine("=== Edit Transaction ===");
+
+    Console.Write("Enter transaction ID to edit: ");
+
+    if (!int.TryParse(Console.ReadLine(), out int id))
+    {
+        Console.WriteLine("Invalid transaction ID.");
+        Pause();
+        return;
+    }
+
+    var transaction = repository.GetById(id);
+
+    if (transaction == null)
+    {
+        Console.WriteLine("Transaction not found.");
+        Pause();
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("Press Enter to keep the current value.");
+
+    Console.Write($"Amount ({transaction.Amount}): ");
+    string amountInput = Console.ReadLine() ?? "";
+
+    decimal amount = transaction.Amount;
+
+    if (!string.IsNullOrWhiteSpace(amountInput))
+    {
+        if (!decimal.TryParse(amountInput, out amount) || amount <= 0)
+        {
+            Console.WriteLine("Invalid amount. The transaction was not updated.");
+            Pause();
+            return;
+        }
+    }
+
+    Console.Write($"Description ({transaction.Description}): ");
+    string descriptionInput = Console.ReadLine() ?? "";
+
+    string description = string.IsNullOrWhiteSpace(descriptionInput)
+        ? transaction.Description
+        : descriptionInput.Trim();
+
+    Console.Write($"Date ({transaction.Date:yyyy-MM-dd}): ");
+    string dateInput = Console.ReadLine() ?? "";
+
+    DateTime date = transaction.Date;
+
+    if (!string.IsNullOrWhiteSpace(dateInput))
+    {
+        if (!DateTime.TryParseExact(
+            dateInput,
+            "yyyy-MM-dd",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None,
+            out date))
+        {
+            Console.WriteLine("Invalid date. Use yyyy-MM-dd. The transaction was not updated.");
+            Pause();
+            return;
+        }
+    }
+
+    Console.Write($"Type ({transaction.Type}) - Income/Expense: ");
+    string typeInput = Console.ReadLine() ?? "";
+
+    TransactionType type = transaction.Type;
+
+    if (!string.IsNullOrWhiteSpace(typeInput))
+    {
+        if (!Enum.TryParse(typeInput, true, out type)
+            || !Enum.IsDefined(type))
+        {
+            Console.WriteLine("Invalid transaction type. The transaction was not updated.");
+            Pause();
+            return;
+        }
+    }
+
+    Console.Write($"Currency ({transaction.Currency}): ");
+    string currencyInput = Console.ReadLine() ?? "";
+
+    CurrencyCode currency = transaction.Currency;
+
+    if (!string.IsNullOrWhiteSpace(currencyInput))
+    {
+        if (!Enum.TryParse(currencyInput, true, out currency)
+            || !Enum.IsDefined(currency))
+        {
+            Console.WriteLine("Invalid currency. The transaction was not updated.");
+            Pause();
+            return;
+        }
+    }
+
+    Console.Write($"Category ({transaction.Category}): ");
+    string categoryInput = Console.ReadLine() ?? "";
+
+    TransactionCategory category = transaction.Category;
+
+    if (!string.IsNullOrWhiteSpace(categoryInput))
+    {
+        if (!Enum.TryParse(categoryInput, true, out category)
+            || !Enum.IsDefined(category))
+        {
+            Console.WriteLine("Invalid category. The transaction was not updated.");
+            Pause();
+            return;
+        }
+    }
+
+    var updatedTransaction = new Transaction
+    {
+        Id = transaction.Id,
+        Amount = amount,
+        Description = description,
+        Date = date,
+        Type = type,
+        Currency = currency,
+        Category = category
+    };
+
+    repository.Update(updatedTransaction);
+
+    Console.WriteLine();
+    Console.WriteLine("Transaction updated successfully.");
     Pause();
 }
 

@@ -43,6 +43,22 @@ public class JsonTransactionRepository : ITransactionRepository
         return GetAll().FirstOrDefault(t => t.Id == id);
     }
 
+public void Update(Transaction transaction)
+{
+    var transactions = GetAll();
+
+    int index = transactions.FindIndex(t => t.Id == transaction.Id);
+
+    if (index == -1)
+    {
+        throw new InvalidOperationException(
+            $"Transaction with ID {transaction.Id} was not found.");
+    }
+
+    transactions[index] = transaction;
+
+    Save(transactions);
+}
     public void Delete(int id)
     {
         var transactions = GetAll();
