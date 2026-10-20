@@ -54,7 +54,7 @@ while (true)
             FindTransaction();
             break;
 
-       
+
         case "4":
             EditTransaction();
             break;
@@ -96,44 +96,85 @@ void AddTransaction()
     Console.WriteLine("=== Add Transaction ===");
 
     Console.Write("Enter transaction ID: ");
-    int id = int.Parse(Console.ReadLine()!);
+
+    if (!int.TryParse(Console.ReadLine(), out int id) || id <= 0)
+    {
+        Console.WriteLine("Invalid transaction ID. Enter a positive whole number.");
+        Pause();
+        return;
+    }
 
     Console.Write("Enter amount: ");
-    decimal amount = decimal.Parse(Console.ReadLine()!);
+
+    if (!decimal.TryParse(Console.ReadLine(), out decimal amount) || amount <= 0)
+    {
+        Console.WriteLine("Invalid amount. Enter a number greater than zero.");
+        Pause();
+        return;
+    }
 
     Console.Write("Enter description: ");
-    string description = Console.ReadLine()!;
+    string description = Console.ReadLine()?.Trim() ?? "";
+
+    if (string.IsNullOrWhiteSpace(description))
+    {
+        Console.WriteLine("Description cannot be empty.");
+        Pause();
+        return;
+    }
 
     Console.Write("Enter date (yyyy-MM-dd): ");
-    DateTime date = DateTime.Parse(Console.ReadLine()!);
+
+    if (!DateTime.TryParseExact(
+        Console.ReadLine(),
+        "yyyy-MM-dd",
+        System.Globalization.CultureInfo.InvariantCulture,
+        System.Globalization.DateTimeStyles.None,
+        out DateTime date))
+    {
+        Console.WriteLine("Invalid date. Use the format yyyy-MM-dd, for example 2026-10-20.");
+        Pause();
+        return;
+    }
 
     Console.Write("Enter type (Income/Expense): ");
-    string typeInput = Console.ReadLine()!;
+    string typeInput = Console.ReadLine()?.Trim() ?? "";
 
-    TransactionType type =
-        Enum.Parse<TransactionType>(typeInput, true);
+    if (!Enum.TryParse<TransactionType>(typeInput, true, out var type)
+        || !Enum.IsDefined(type))
+    {
+        Console.WriteLine("Invalid transaction type. Enter Income or Expense.");
+        Pause();
+        return;
+    }
 
     Console.Write("Enter currency (NGN, USD, GBP, EUR): ");
-    string currencyInput =
-        Console.ReadLine()!.Trim().ToUpperInvariant();
+    string currencyInput = Console.ReadLine()?.Trim() ?? "";
 
     if (!Enum.TryParse<CurrencyCode>(
-        currencyInput,
-        true,
-        out var currency))
+            currencyInput,
+            true,
+            out var currency)
+        || !Enum.IsDefined(currency))
     {
-        Console.WriteLine("Invalid currency.");
+        Console.WriteLine("Invalid currency. Enter NGN, USD, GBP, or EUR.");
         Pause();
         return;
     }
 
     Console.Write("Enter category: ");
-    string categoryInput = Console.ReadLine()!;
+    string categoryInput = Console.ReadLine()?.Trim() ?? "";
 
-    TransactionCategory category =
-        Enum.Parse<TransactionCategory>(
+    if (!Enum.TryParse<TransactionCategory>(
             categoryInput,
-            true);
+            true,
+            out var category)
+        || !Enum.IsDefined(category))
+    {
+        Console.WriteLine("Invalid category. Please enter a valid transaction category.");
+        Pause();
+        return;
+    }
 
     var transaction = new Transaction
     {
@@ -187,7 +228,13 @@ void FindTransaction()
     Console.WriteLine("=== Find Transaction ===");
 
     Console.Write("Enter transaction ID: ");
-    int id = int.Parse(Console.ReadLine()!);
+
+    if (!int.TryParse(Console.ReadLine(), out int id) || id <= 0)
+    {
+        Console.WriteLine("Invalid transaction ID. Enter a positive whole number.");
+        Pause();
+        return;
+    }
 
     var transaction = repository.GetById(id);
 
@@ -199,9 +246,9 @@ void FindTransaction()
     {
         Console.WriteLine();
         Console.WriteLine($"ID: {transaction.Id}");
-        
-Console.WriteLine(
-    $"Amount: {FormatTransactionAmount(transaction.Amount, transaction.Currency)}");
+
+        Console.WriteLine(
+            $"Amount: {FormatTransactionAmount(transaction.Amount, transaction.Currency)}");
         Console.WriteLine($"Description: {transaction.Description}");
         Console.WriteLine($"Date: {transaction.Date:yyyy-MM-dd}");
         Console.WriteLine($"Type: {transaction.Type}");
@@ -352,7 +399,13 @@ void DeleteTransaction()
     Console.WriteLine("=== Delete Transaction ===");
 
     Console.Write("Enter transaction ID: ");
-    int id = int.Parse(Console.ReadLine()!);
+
+    if (!int.TryParse(Console.ReadLine(), out int id) || id <= 0)
+    {
+        Console.WriteLine("Invalid transaction ID. Enter a positive whole number.");
+        Pause();
+        return;
+    }
 
     var transaction = repository.GetById(id);
 
@@ -383,36 +436,36 @@ void ShowFinancialSummary()
 
     var transactions = repository.GetAll();
 
-       if (transactions.Count == 0)
+    if (transactions.Count == 0)
     {
         Console.WriteLine("No transactions found.");
         Pause();
         return;
     }
 
-    
-Console.WriteLine("Select currency for the summary:");
 
-CurrencyCode[] currencies = Enum.GetValues<CurrencyCode>();
+    Console.WriteLine("Select currency for the summary:");
 
-for (int i = 0; i < currencies.Length; i++)
-{
-    Console.WriteLine($"{i + 1}. {currencies[i]}");
-}
+    CurrencyCode[] currencies = Enum.GetValues<CurrencyCode>();
 
-Console.Write("Enter the number for your currency: ");
-string currencyInput = Console.ReadLine()?.Trim() ?? "";
+    for (int i = 0; i < currencies.Length; i++)
+    {
+        Console.WriteLine($"{i + 1}. {currencies[i]}");
+    }
 
-if (!int.TryParse(currencyInput, out int currencyChoice)
-    || currencyChoice < 1
-    || currencyChoice > currencies.Length)
-{
-    Console.WriteLine($"Invalid selection. Please choose a number from 1 to {currencies.Length}.");
-    Pause();
-    return;
-}
+    Console.Write("Enter the number for your currency: ");
+    string currencyInput = Console.ReadLine()?.Trim() ?? "";
 
-CurrencyCode selectedCurrency = currencies[currencyChoice - 1];
+    if (!int.TryParse(currencyInput, out int currencyChoice)
+        || currencyChoice < 1
+        || currencyChoice > currencies.Length)
+    {
+        Console.WriteLine($"Invalid selection. Please choose a number from 1 to {currencies.Length}.");
+        Pause();
+        return;
+    }
+
+    CurrencyCode selectedCurrency = currencies[currencyChoice - 1];
 
     var filteredTransactions = transactions
         .Where(t => t.Currency == selectedCurrency)
@@ -513,17 +566,17 @@ void ShowMonthlySummary()
     Console.Write("Enter currency (NGN, USD, GBP, EUR): ");
     string currencyInput = Console.ReadLine()!.ToUpper();
 
-   var allTransactions = repository.GetAll().ToList();
+    var allTransactions = repository.GetAll().ToList();
 
-var monthlyTransactions =
-    summaryService.GetTransactionsForMonth(
-        allTransactions,
-        year,
-        month)
-    .Where(transaction =>
-        transaction.Currency.ToString()
-            .Equals(currencyInput, StringComparison.OrdinalIgnoreCase))
-    .ToList();
+    var monthlyTransactions =
+        summaryService.GetTransactionsForMonth(
+            allTransactions,
+            year,
+            month)
+        .Where(transaction =>
+            transaction.Currency.ToString()
+                .Equals(currencyInput, StringComparison.OrdinalIgnoreCase))
+        .ToList();
 
     if (monthlyTransactions.Count == 0)
     {
@@ -535,15 +588,15 @@ var monthlyTransactions =
     decimal income =
     summaryService.CalculateTotalIncome(monthlyTransactions);
 
-decimal expenses =
-    summaryService.CalculateTotalExpenses(monthlyTransactions);
-    
+    decimal expenses =
+        summaryService.CalculateTotalExpenses(monthlyTransactions);
+
     decimal balance =
         summaryService.CalculateBalance(monthlyTransactions);
 
     decimal savingsRate =
         summaryService.CalculateSavingsRate(monthlyTransactions);
-   
+
     string currencySymbol = currencyInput switch
     {
         "NGN" => "₦",
