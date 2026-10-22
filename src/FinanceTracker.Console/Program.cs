@@ -646,8 +646,14 @@ void ShowBudgetManagement()
         return;
     }
 
+       var currentMonth = DateTime.Now.Month;
+    var currentYear = DateTime.Now.Year;
+
     var transactions = repository.GetAll()
-        .Where(t => t.Currency == budgetCurrency)
+        .Where(t =>
+            t.Currency == budgetCurrency &&
+            t.Date.Month == currentMonth &&
+            t.Date.Year == currentYear)
         .ToList();
 
     var budgetService = new BudgetService();
